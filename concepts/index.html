@@ -313,6 +313,17 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
 .pto{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .pto label{display:inline-flex;gap:6px;align-items:center;background:var(--s2);border:1px solid var(--line2);border-radius:99px;padding:5px 11px;font-size:13px;cursor:pointer}
 .day .pz,.wcol .pz{font-size:10.5px;font-weight:600;color:var(--warn)}
+
+.ygrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ytile{background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:left;display:flex;flex-direction:column;gap:3px}
+.ytile:hover{border-color:var(--line2)}
+.ytile .yt{font-weight:600;text-transform:capitalize;font-size:13px}
+.ytile .yk{font-family:var(--f-display);font-size:24px;font-weight:600;line-height:1.05}
+.ytile .yk small{font-size:12px;font-family:var(--f-body);color:var(--muted)}
+.ytile .ys{font-size:11.5px;color:var(--muted)}
+.ydots{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:4px}
+.ydots i{aspect-ratio:1;border-radius:2px;display:block}
+.ydots i.e{background:none}
 /* виды календаря */
 .vseg{display:flex;background:var(--s2);border:1px solid var(--line);border-radius:99px;padding:3px}
 .vseg button{border:0;background:none;padding:5px 12px;border-radius:99px;color:var(--muted);font-weight:600;font-size:13px}
@@ -339,7 +350,7 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
 .dayv .strip button[aria-pressed="true"] .c{outline:2px solid var(--lime);outline-offset:2px}
 .dayv .dbody{background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:18px}
 .dayv .dbody h3{font-family:var(--f-display);text-transform:uppercase;font-size:28px;margin:0 0 2px;font-weight:600}
-.two.solo{grid-template-columns:1fr}
+.two.solo{grid-template-columns:minmax(0,1fr)}
 .dayv .kv div{background:var(--s3)}
 .two.solo .detail{display:none}
 
@@ -368,6 +379,7 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
   .head{grid-template-columns:1fr}
 }
 @container cw (max-width:760px){
+  .ygrid{grid-template-columns:1fr 1fr}
   .cnav{order:99;position:sticky;bottom:0;z-index:10;align-self:stretch;justify-content:space-between;border-radius:16px;box-shadow:0 -6px 20px rgba(0,0,0,.12)}
   .cnav button{flex-direction:column;gap:2px;padding:7px 4px;font-size:11px;flex:1}
   .vh h1{font-size:26px}
@@ -664,7 +676,7 @@ function renderAthCard(){
       <div class="card">
         <div class="card-h">
           <h2>Календарь</h2>
-          <div class="vseg" role="group" aria-label="Вид календаря"><button data-v="day">День</button><button data-v="week">Неделя</button><button data-v="month">Месяц</button></div>
+          <div class="vseg" role="group" aria-label="Вид календаря"><button data-v="day">День</button><button data-v="week">Неделя</button><button data-v="month">Месяц</button><button data-v="year">Год</button></div>
           <div class="mnav"><button class="btn icon" id="mprev" aria-label="Назад">‹</button><span class="cur" id="mcur"></span><button class="btn icon" id="mnext" aria-label="Вперёд">›</button></div>
           <button class="btn" id="mtoday">Сегодня</button>
           <span class="spacer"></span>
@@ -716,6 +728,8 @@ function shiftMonth(n){
 }
 function nav(n){
   const a = DATA.athletes.find(x=>x.id===state.ath);
+  if (state.view === 'year'){ const x = D(state.sel); x.setUTCMonth(x.getUTCMonth()+12*n); const nd = ISO(x); const first = [...Object.keys(a.plan), ...Object.keys(a.fact)].sort()[0];
+    if (nd.slice(0,7) < first.slice(0,7) || nd > add(TODAY,40)) return toast('Дальше данных нет'); state.sel = nd; state.month = nd.slice(0,7); renderCal(a); return; }
   if (state.view === 'month') return shiftMonth(n);
   const nd = add(state.sel, state.view === 'week' ? 7*n : n);
   const first = [...Object.keys(a.plan), ...Object.keys(a.fact)].sort()[0];
@@ -732,9 +746,10 @@ function dayTag(a, d){
 }
 function renderCal(a){
   document.querySelectorAll('.vseg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === state.view));
-  const two = document.querySelector('.two'); if (two) two.classList.toggle('solo', state.view === 'day');
+  const two = document.querySelector('.two'); if (two) two.classList.toggle('solo', state.view === 'day' || state.view === 'year');
   $('#cal').className = state.view === 'month' ? 'cal' : '';
   if (state.view === 'week') return renderWeek(a);
+  if (state.view === 'year') return renderYear(a);
   if (state.view === 'day') return renderDay(a);
   renderMonth(a);
 }
@@ -833,6 +848,43 @@ function detailHTML(a, d){
   return h;
 }
 
+
+function monthStats(a, ym){
+  const [y,m] = ym.split('-').map(Number), last = new Date(Date.UTC(y,m,0)).getUTCDate();
+  let pk=0, fk=0, runs=0, pl=0, ok=0, races=0, longest=0, unk=false;
+  for (let i=1;i<=last;i++){ const d = ym+'-'+String(i).padStart(2,'0'), p = a.plan[d], f = a.fact[d];
+    if (p && p.type!=='rest'){ if (p.km) pk += p.km; else unk = true; }
+    if (f && d < TODAY){ fk += f.km; runs++; longest = Math.max(longest, ...(f.runs||[{km:f.km}]).map(r=>r.km)); }
+    if (d < TODAY){ const st = status(a,d); if (['done','dev','miss','race','moved','noreport'].includes(st)){ pl++; if (['done','dev','race'].includes(st)) ok++; } if (st==='race') races++; } }
+  return {pk, fk, runs, pct: pl ? Math.round(ok/pl*100) : null, races, longest, last, unk};
+}
+function renderYear(a){
+  const end = state.sel.slice(0,7), months = [];
+  for (let k=11;k>=0;k--){ const x = D(end+'-01'); x.setUTCMonth(x.getUTCMonth()-k); months.push(ISO(x).slice(0,7)); }
+  const MS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const lbl = ym => MS[+ym.slice(5)-1]+' '+ym.slice(2,4);
+  $('#mcur').textContent = lbl(months[0])+' - '+lbl(months[11]);
+  const st = months.map(m => monthStats(a, m));
+  const tot = st.reduce((s,x)=>({fk:s.fk+x.fk, runs:s.runs+x.runs, races:s.races+x.races, longest:Math.max(s.longest,x.longest)}),{fk:0,runs:0,races:0,longest:0});
+  const pcts = st.map(x=>x.pct).filter(x=>x!=null), avgPct = pcts.length ? Math.round(pcts.reduce((s,x)=>s+x,0)/pcts.length) : null;
+  // недели
+  const weeks = []; let w = monday(months[0]+'-01'); const lastDay = ISO(new Date(Date.UTC(+end.slice(0,4), +end.slice(5), 0)));
+  while (w <= lastDay){ weeks.push({w, ...weekSum(a,w)}); w = add(w,7); }
+  const mx = Math.max(10, ...weeks.map(x=>Math.max(x.f, x.p)));
+  const W = 900, H = 150, L = 30, B = 22, bw = (W-L-6)/weeks.length, yy = v => 8 + (H-8-B)*(1-v/mx);
+  let g = ''; for (let v=0; v<=mx; v+=20) g += `<line class="grid" x1="${L}" x2="${W}" y1="${yy(v)}" y2="${yy(v)}"/><text class="axis" x="${L-5}" y="${yy(v)+4}" text-anchor="end">${v}</text>`;
+  weeks.forEach((x,i) => { const X = L + i*bw; if (x.p) g += `<rect x="${X+1}" y="${yy(x.p)}" width="${Math.max(1,bw-2)}" height="${yy(0)-yy(x.p)}" fill="none" stroke="var(--line2)" stroke-dasharray="2 2"/>`; if (x.w < TODAY) g += `<rect x="${X+1.5}" y="${yy(x.f)}" width="${Math.max(1,bw-3)}" height="${Math.max(0,yy(0)-yy(x.f))}" rx="1.5" fill="var(--ok)" opacity=".8"><title>${fmtShort(x.w)}: ${km1(x.f)} км</title></rect>`; if (x.w.slice(8)<='07') g += `<text class="axis" x="${X}" y="${H-6}">${MS[+x.w.slice(5,7)-1]}</text>`; });
+  const tiles = months.map((m,k) => { const x = st[k], [yy2,mm] = m.split('-').map(Number), off = (new Date(Date.UTC(yy2,mm-1,1)).getUTCDay()+6)%7;
+    const dots = Array.from({length:off},()=>'<i class="e"></i>').join('') + Array.from({length:x.last},(_,i)=>{ const d = m+'-'+String(i+1).padStart(2,'0'), s2 = status(a,d); return `<i style="background:${s2==='rest'||s2==='future'||s2==='opt'?'var(--s3)':dotColor(s2)}" title="${fmtShort(d)}"></i>`; }).join('');
+    return `<button class="ytile" data-ym="${m}"><span class="yt">${MONTHS[mm-1]} <span class="muted">${yy2}</span></span><span class="yk num">${Math.round(x.fk)}<small> км</small></span><span class="ys num">план ${x.unk?'от ':''}${Math.round(x.pk)} · ${x.runs} трен.${x.pct!=null?' · '+x.pct+'%':''}${x.races?' · старт':''}</span><span class="ydots">${dots}</span></button>`; }).join('');
+  $('#cal').innerHTML = `<div class="kpis" style="margin-bottom:14px">
+      <div class="kpi"><span class="k">За 12 месяцев</span><span class="v num">${Math.round(tot.fk)} км</span><span class="s">${tot.runs} тренировок</span></div>
+      <div class="kpi"><span class="k">Выполнение плана</span><span class="v num">${avgPct==null?'-':avgPct+'%'}</span><span class="s">в среднем по месяцам</span></div>
+      <div class="kpi"><span class="k">Стартов</span><span class="v num">${tot.races}</span><span class="s">самая длинная ${km1(tot.longest)} км</span></div></div>
+    <div class="vol" style="margin-bottom:14px"><p class="lbl">Объём по неделям</p><div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Объём по неделям за год">${g}</svg></div></div>
+    <p class="lbl">Месяцы · нажми, чтобы открыть</p><div class="ygrid">${tiles}</div>`;
+  document.querySelectorAll('.ytile').forEach(b => b.onclick = () => { state.view = 'month'; state.month = b.dataset.ym; state.sel = b.dataset.ym+'-01'; renderCal(a); renderDetail(a); });
+}
 function renderVol(a){
   const weeks = []; let mon = add(monday(TODAY), -7*13);
   while (mon <= monday(TODAY)){ weeks.push(mon); mon = add(mon,7); }
@@ -1138,8 +1190,8 @@ setMode('coach');
 @media (max-width:760px){
   .top .demo{display:none}
   .top{gap:8px;padding:10px 16px}
-  .cseg{flex-wrap:nowrap;width:100%}
-  .cseg button{flex:1;padding:6px 4px;font-size:11.5px}
+  .cseg{flex-wrap:wrap;width:100%;border-radius:16px}
+  .cseg button{flex:1 1 30%;padding:6px 4px;font-size:11.5px}
   .brand{font-size:17px}
 }
 @container cw (max-width:920px){
@@ -1157,15 +1209,16 @@ setMode('coach');
 </style>
 <script>
 /* ===================== ВАРИАНТЫ ===================== */
-const CONCEPTS = [['inbox','Входящие'],['board','Планёрка'],['bot','Бот ведёт'],['diary','Дневник']];
+const CONCEPTS = [['inbox','Входящие'],['board','Планёрка'],['bot','Бот ведёт'],['diary','Дневник'],['classic','Один экран']];
 const NEXTW = DATA.next || add(monday(TODAY),7);
 state.concept = 'inbox'; state.coachF = 'Ильназ'; state.doneEv = new Set(); state.ibxOpen = null; state.bday = 1; state.botLog = null; state.botStep = null;
 const _diaryCoach = window.renderCoach, _diaryAthlete = window.renderAthlete;
 const CT = { inbox:[['inbox','Входящие'],['plans','Неделя'],['athletes','Ученики'],['pay','Оплаты']],
   board:[['board','Планёрка'],['today','Сегодня'],['athletes','Ученики'],['pay','Оплаты']],
   bot:[['botchat','Чат с ботом'],['athletes','Ученики']],
-  diary:[['today','Сегодня'],['athletes','Ученики'],['plans','Планы'],['pay','Оплаты'],['stats','Аналитика']] };
-const CUSTOM = ['inbox','board','botchat'];
+  diary:[['today','Сегодня'],['athletes','Ученики'],['plans','Планы'],['pay','Оплаты'],['stats','Аналитика']],
+  classic:[['classic','Один экран']] };
+const CUSTOM = ['inbox','board','botchat','classic'];
 const byCoach = () => DATA.athletes.filter(a => state.coachF === 'все' || a.coach === state.coachF);
 const ath = id => DATA.athletes.find(x => x.id === id);
 const COL = {здоровье:'bad', просьба:'warn', отчёт:'ok', молчит:'move', оплата:'warn', план:'move'};
@@ -1178,7 +1231,7 @@ const nextMonth = d => { const x = D(d); x.setUTCMonth(x.getUTCMonth()+1); retur
   seg.innerHTML = CONCEPTS.map(([k,t],i) => `<button data-c="${k}">${i+1}. ${t}</button>`).join('');
   top.insertBefore(seg, top.children[1]);
   seg.querySelectorAll('button').forEach(b => b.onclick = () => { state.concept = b.dataset.c; state.ctab = CT[state.concept][0][0]; state.athOpen = false; state.ibxOpen = null; syncHash(); renderAny(); });
-  document.querySelector('.demo').innerHTML = '<b>Четыре варианта главного экрана тренера.</b> Денис на реальных данных (план Ильназа из переписки, факт из Strava), остальные 15 учеников тестовые: 10 у Ильназа, 6 у Алсу.';
+  document.querySelector('.demo').innerHTML = '<b>Пять вариантов главного экрана тренера.</b> Денис на реальных данных (план Ильназа из переписки, факт из Strava), остальные 15 учеников тестовые: 10 у Ильназа, 6 у Алсу.';
 })();
 function syncHash(){ try { history.replaceState(null,'','#c='+state.concept+'&m='+state.mode+'&dev='+($('#cwrap').classList.contains('asphone')?'phone':'desk')); } catch(e){} }
 function readHash(){ const h = new URLSearchParams(location.hash.slice(1)); if (CT[h.get('c')]) state.concept = h.get('c'); if (h.get('m')==='ath') state.mode = 'ath'; if (h.get('dev')==='phone') setDev('phone'); }
@@ -1190,13 +1243,21 @@ function bindCoachFilter(root){ root.querySelectorAll('[data-cf]').forEach(b => 
 window.renderCoach = function(){
   CTABS.splice(0, CTABS.length, ...CT[state.concept]);
   if (!CTABS.some(t => t[0]===state.ctab)) state.ctab = CTABS[0][0];
+  $('#cnav').hidden = state.concept === 'classic';
   if (!CUSTOM.includes(state.ctab)) return _diaryCoach();
   renderNav();
+  if (state.ctab === 'classic') return renderClassic();
   if (state.ctab === 'inbox') renderInbox();
   else if (state.ctab === 'board') renderBoard();
   else renderBotCoach();
 };
 
+/* ---------- 5. Один экран (версия до вкладок) ---------- */
+function renderClassic(){
+  $('#cview').innerHTML = `<div class="apane ${state.athOpen?'open':''}"><aside class="side" aria-label="Ученики"><div class="club" id="club"></div><h2>Ученики · <span id="cnt"></span></h2><div id="alist" style="display:flex;flex-direction:column;gap:8px"></div></aside><section class="main" id="cmain"></section></div>`;
+  renderClub(); renderList(); renderAthCard();
+  document.querySelectorAll('#club .att button').forEach(b => b.onclick = () => { state.ath = b.dataset.a; state.sel = TODAY; state.athOpen = true; renderCoach(); });
+}
 /* ---------- 1. Входящие ---------- */
 function silentDays(a){ let n = 0; for (let i=1;i<=6;i++){ const d = add(TODAY,-i); if (!a.plan[d]) continue; if (a.fact[d]) break; n++; } return n; }
 function inboxEvents(){
@@ -1397,7 +1458,7 @@ function botAskWho(){ const den = ath('denis'); botPush({who:'bot', text:'Ком
 /* ---------- экраны ученика ---------- */
 window.renderAthlete = function(){
   _diaryAthlete();
-  if (state.concept === 'diary' || state.tab !== 'today' || state.report) return;
+  if (state.concept === 'diary' || state.concept === 'classic' || state.tab !== 'today' || state.report) return;
   const a = ME(), body = document.querySelector('#screen .scr');
   if (state.concept === 'inbox'){
     const days = Array.from({length:5},(_,i)=>add(TODAY,-i)).filter(d => a.plan[d] || a.fact[d] || NOTE(a,d).comment || NOTE(a,d).coach);
