@@ -10,12 +10,23 @@
   color-scheme: dark;
   --bg:#0A0B09; --s1:#131511; --s2:#1B1E18; --s3:#252922; --line:#2C3128; --line2:#3A4035;
   --text:#F1F4EC; --muted:#8F9787; --dim:#5F665A;
-  --lime:#D2FF3A; --lime-ink:#11140A;
+  --lime:#D2FF3A; --lime-ink:#11140A; --lime-t:#D2FF3A;
   --ok:#3DD6A0; --warn:#F5B640; --bad:#FF5E52; --move:#8EB2FF;
   --f-display:"Oswald","Arial Narrow",Impact,sans-serif;
   --f-body:"Onest",-apple-system,"Segoe UI",Roboto,sans-serif;
   --r:14px; --r-s:9px;
 }
+
+/* светлая тема: те же роли токенов */
+:root[data-ui="light"]{
+  color-scheme: light;
+  --bg:#F4F5F0; --s1:#FFFFFF; --s2:#F1F3EC; --s3:#E5E8DF; --line:#E1E4DA; --line2:#CBD0C2;
+  --text:#14170F; --muted:#5D6458; --dim:#9AA092;
+  --lime:#D2FF3A; --lime-ink:#11140A; --lime-t:#4E7D00;
+  --ok:#0E9F6A; --warn:#B87900; --bad:#D9392E; --move:#3767D8;
+}
+:root[data-ui="light"] .hero h3{color:#F1F4EC}
+:root[data-ui="light"] .phone{box-shadow:0 30px 80px rgba(20,25,10,.18)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{background:var(--bg)}
@@ -36,8 +47,36 @@ button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px soli
 .demo b{color:var(--text);font-weight:600}
 
 /* coach layout */
-.coach{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px;max-width:1360px;margin:20px auto 0}
+.coach{display:flex;flex-direction:column;gap:18px;max-width:1360px;margin:16px auto 0}
+.cnav{display:flex;gap:4px;background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:5px;align-self:flex-start}
+.cnav button{border:0;background:none;padding:8px 14px;border-radius:11px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
+.cnav button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+.cnav .bd{min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;display:inline-grid;place-items:center;padding:0 5px}
+.apane{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px}
+.apane .back{display:none}
+.vh{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.vh h1{font-family:var(--f-display);text-transform:uppercase;font-size:32px;margin:0;font-weight:700;line-height:1}
+.vh p{margin:0;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.kpi{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .v{font-family:var(--f-display);font-size:30px;font-weight:600;line-height:1.05}
+.kpi .s{font-size:12px;color:var(--muted)}
+.cols2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .btn{padding:5px 11px;font-size:12px;white-space:nowrap}
+.tbl .who{display:flex;align-items:center;gap:10px;font-weight:600}
+.tbl .who .ava{width:32px;height:32px;font-size:12px}
+.tblwrap{overflow-x:auto}
+.mbar{display:flex;align-items:flex-end;gap:3px;height:34px}
+.mbar i{width:12px;border-radius:3px 3px 0 0;background:var(--ok);opacity:.8}
+.mbar i.pl{background:none;border:1px dashed var(--line2);opacity:1}
+.pct{font-family:var(--f-display);font-size:18px;font-weight:600}
 .side{display:flex;flex-direction:column;gap:8px;position:sticky;top:76px;align-self:start}
+.themebtn{border:1px solid var(--line2);background:var(--s2);border-radius:99px;padding:6px 12px;font-weight:600;font-size:13px}
 .side h2{font-family:var(--f-display);text-transform:uppercase;font-size:13px;letter-spacing:.08em;color:var(--muted);margin:0 0 4px;font-weight:500}
 .ath{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;text-align:left;background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
 .ath[aria-current="true"]{border-color:var(--lime);background:var(--s2)}
@@ -60,7 +99,7 @@ button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px soli
 .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin:0 0 8px}
 .goals{display:flex;flex-direction:column;gap:8px;margin-top:16px}
 .goal{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:var(--r-s);background:var(--s2)}
-.prio{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--lime);text-align:center}
+.prio{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--lime-t);text-align:center}
 .goal .t{font-weight:600}
 .goal .d{font-size:12px;color:var(--muted)}
 .goal .tg{font-family:var(--f-display);font-size:22px;font-weight:600}
@@ -68,8 +107,8 @@ button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px soli
 .pr{background:var(--s2);border-radius:var(--r-s);padding:10px 12px;display:flex;flex-direction:column;gap:2px;border:1px solid transparent}
 .pr .k{font-size:12px;color:var(--muted)}
 .pr .v{font-family:var(--f-display);font-size:24px;font-weight:600;line-height:1.1}
-.pr.new{border-color:var(--lime)}
-.pr .nw{font-size:11px;color:var(--lime);font-weight:600;line-height:1.3}
+.pr.new{border-color:var(--lime-t)}
+.pr .nw{font-size:11px;color:var(--lime-t);font-weight:600;line-height:1.3}
 .zones{margin-top:14px;font-size:13px;color:var(--muted)}
 .zones b{color:var(--text);font-weight:600}
 
@@ -124,7 +163,7 @@ button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px soli
 .day.st-opt .tag,.wcol.st-opt .tag{color:var(--muted)}
 .day.st-future,.wcol.st-future{border-style:solid}
 .day.st-race,.wcol.st-race{background:color-mix(in srgb,var(--lime) 16%,var(--s2));border-color:var(--lime)}
-.day.st-race .fk,.day.st-race .tag,.wcol.st-race .fk,.wcol.st-race .tag{color:var(--lime)}
+.day.st-race .fk,.day.st-race .tag,.wcol.st-race .fk,.wcol.st-race .tag{color:var(--lime-t)}
 .wsum{background:var(--s1);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;justify-content:center;gap:2px}
 .wsum .wl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 .wsum .wf{font-family:var(--f-display);font-size:26px;font-weight:600;line-height:1}
@@ -202,7 +241,7 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
 .hero{border-radius:22px;overflow:hidden;position:relative;min-height:330px;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;background:var(--s2) center 30%/cover no-repeat}
 .hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,11,9,0) 25%,rgba(10,11,9,.75) 60%,rgba(10,11,9,.96))}
 .hero>*{position:relative}
-.hero .eb{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--lime);font-weight:600}
+.hero .eb{color:var(--lime)!important;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--lime-t);font-weight:600}
 .hero h3{font-family:var(--f-display);font-size:34px;line-height:1;text-transform:uppercase;margin:4px 0 6px;font-weight:700}
 .hero p{margin:0 0 14px;color:#D5DACD;font-size:13px}
 .cta{width:100%;border:0;background:var(--lime);color:var(--lime-ink);font-weight:700;font-size:15px;padding:14px;border-radius:99px}
@@ -313,15 +352,33 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
 .dev{display:flex}
 @container cw (max-width:1180px){ .two{grid-template-columns:1fr} .detail{position:static} }
 @container cw (max-width:920px){
-  .coach{grid-template-columns:minmax(0,1fr)}
+  .apane{grid-template-columns:minmax(0,1fr)}
+  .apane .main{display:none}
+  .apane.open .main{display:flex}
+  .apane.open .side{display:none}
+  .apane .back{display:inline-flex}
   .side{min-width:0}
+  .cols2{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .kpi{padding:10px}
+  .kpi .v{font-size:22px}
   .side{position:static}
-  #alist{flex-direction:row!important;overflow-x:auto;padding-bottom:4px}
   .side>h2{display:none}
   .ath{min-width:230px}
   .head{grid-template-columns:1fr}
 }
 @container cw (max-width:760px){
+  .cnav{order:99;position:sticky;bottom:0;z-index:10;align-self:stretch;justify-content:space-between;border-radius:16px;box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+  .cnav button{flex-direction:column;gap:2px;padding:7px 4px;font-size:11px;flex:1}
+  .vh h1{font-size:26px}
+  .tbl .hide-s{display:none}
+  .tbl thead{display:none}
+  .tbl tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .tbl tr:last-child{border-bottom:0}
+  .tbl td{border:0;padding:0;grid-column:1;font-size:13px}
+  .tbl td:first-child{font-size:14px}
+  .tbl td:last-child{grid-column:2;grid-row:1 / span 4;align-self:center;text-align:right}
+  .tbl td:last-child .btn{display:block;margin:3px 0 0 auto}
   .wkv{grid-template-columns:1fr}
   .wcol{min-height:0}
   .wcol .ptx{-webkit-line-clamp:3}
@@ -364,6 +421,7 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
     <button id="m-coach" aria-pressed="true">Тренер</button>
     <button id="m-ath" aria-pressed="false">Ученик</button>
   </div>
+  <button class="themebtn" id="themebtn" aria-label="Сменить тему">Светлая тема</button>
   <div class="seg dev" role="group" aria-label="Экран" id="devseg">
     <button id="d-desk" aria-pressed="true">Компьютер</button>
     <button id="d-phone" aria-pressed="false">Телефон</button>
@@ -372,12 +430,8 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
 </header>
 
 <div id="cwrap" class="cwrap"><div id="coach" class="coach">
-  <aside class="side" aria-label="Ученики">
-    <div class="club" id="club"></div>
-    <h2>Ученики · <span id="cnt"></span></h2>
-    <div id="alist" style="display:flex;flex-direction:column;gap:8px"></div>
-  </aside>
-  <section class="main" id="cmain"></section>
+  <nav class="cnav" id="cnav" aria-label="Разделы тренера"></nav>
+  <div id="cview"></div>
 </div></div>
 
 <div id="athlete" class="athlete" hidden>
@@ -416,7 +470,7 @@ const fmtShort = iso => { const d = D(iso); return String(d.getUTCDate()).padSta
 const km1 = v => (Math.round(v*10)/10).toLocaleString('ru-RU',{minimumFractionDigits:v<100?1:0,maximumFractionDigits:1});
 const hms = s => { s = Math.round(s); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60; return (h? h+':'+String(m).padStart(2,'0') : m)+':'+String(x).padStart(2,'0'); };
 
-const state = { view:'month', mode:'coach', ath:'denis', month:'2026-10', sel:TODAY, tab:'today', report:false };
+const state = { ctab:'today', athOpen:false, view:'month', mode:'coach', ath:'denis', month:'2026-10', sel:TODAY, tab:'today', report:false };
 
 function status(a, iso){
   const p = a.plan[iso], f = a.fact[iso];
@@ -492,9 +546,83 @@ function athFlags(a){
   return out;
 }
 
-/* ---------- coach ---------- */
+
+/* ---------- кабинет тренера: вкладки ---------- */
+const CTABS = [['today','Сегодня'],['athletes','Ученики'],['plans','Планы'],['pay','Оплаты'],['stats','Аналитика']];
+function attnItems(){ return DATA.athletes.map(a => { const l = attention(a); return l.length ? {a, c: l.some(x=>x[0]==='bad') ? 'bad' : 'warn', t: l.map(x=>x[1]).join(' · ')} : null; }).filter(Boolean); }
+function renderNav(){
+  const n = attnItems().length, np = DATA.athletes.filter(a => payState(a).k !== 'ok').length;
+  $('#cnav').innerHTML = CTABS.map(([k,t]) => `<button data-k="${k}" aria-pressed="${state.ctab===k}">${t}${k==='today'&&n?`<span class="bd">${n}</span>`:''}${k==='pay'&&np?`<span class="bd">${np}</span>`:''}</button>`).join('');
+  document.querySelectorAll('#cnav button').forEach(b => b.onclick = () => { state.ctab = b.dataset.k; state.athOpen = false; renderCoach(); const sc = document.querySelector('.cwrap.asphone .coach'); if (sc) sc.scrollTop = 0; else window.scrollTo(0,0); });
+}
+function openAth(id){ state.ctab = 'athletes'; state.ath = id; state.sel = TODAY; state.athOpen = true; renderCoach(); }
+function planWeekInfo(a, mon){ let n = 0, km = 0; for (let i=0;i<7;i++){ const p = a.plan[add(mon,i)]; if (p && p.type!=='rest'){ n++; km += p.km||0; } } return {n, km}; }
+function compliance(a, mon){ let pl = 0, ok = 0; for (let i=0;i<7;i++){ const d = add(mon,i); if (d >= TODAY) continue; const st = status(a,d); if (['done','dev','miss','race','moved','noreport'].includes(st)){ pl++; if (['done','race','dev'].includes(st)) ok++; } } return pl ? Math.round(ok/pl*100) : null; }
+function renderCoach(){
+  renderNav();
+  const v = $('#cview'), k = state.ctab;
+  const cur = monday(TODAY), prev = add(cur,-7), next = add(cur,7);
+  if (k === 'today'){
+    const items = attnItems();
+    const rep = DATA.athletes.filter(a => !['noreport','miss'].includes(status(a, add(TODAY,-1)))).length;
+    const planned = DATA.athletes.filter(a => planWeekInfo(a, next).n).length;
+    const paid = DATA.athletes.filter(a => payState(a).k === 'ok').length;
+    v.innerHTML = `<div class="vh"><h1>Сегодня</h1><p>${WD_FULL[wday(TODAY)]}, ${fmtD(TODAY)}</p></div>
+      <div class="kpis">
+        <button class="kpi" data-go="athletes"><span class="k">Отчитались за вчера</span><span class="v num">${rep} из ${DATA.athletes.length}</span><span class="s">с планом или без</span></button>
+        <button class="kpi" data-go="plans"><span class="k">План на след. неделю</span><span class="v num">${planned} из ${DATA.athletes.length}</span><span class="s">неделя с ${fmtShort(next)}</span></button>
+        <button class="kpi" data-go="pay"><span class="k">Оплаты в порядке</span><span class="v num">${paid} из ${DATA.athletes.length}</span><span class="s">остальным напомнить</span></button>
+      </div>
+      <div class="cols2">
+        <div class="card"><div class="card-h"><h2>Кому написать · ${items.length}</h2></div>
+          <div class="att" style="border:0;padding:0;background:none">${items.length ? items.map(x => `<button data-a="${x.a.id}"><i style="background:var(--${x.c})"></i><span><b>${esc(x.a.name)}</b><span>${esc(x.t)}</span></span></button>`).join('') : '<span class="muted">Все отчитались, вопросов нет</span>'}</div></div>
+        <div class="card"><div class="card-h"><h2>Групповые</h2></div><div class="club" style="margin:0">${DATA.groups.map(x => `<div class="grp"><b>${esc(x.title)}</b><span class="gw">${x.when} · ближайшая ${fmtShort(x.date)}</span><span class="gn num">${x.going.length}<small>идут</small></span></div>`).join('')}</div></div>
+      </div>`;
+    v.querySelectorAll('.att button').forEach(b => b.onclick = () => openAth(b.dataset.a));
+    v.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { state.ctab = b.dataset.go; renderCoach(); });
+  } else if (k === 'athletes'){
+    v.innerHTML = `<div class="apane ${state.athOpen?'open':''}"><aside class="side" aria-label="Ученики"><h2>Ученики · <span id="cnt"></span></h2><div id="alist" style="display:flex;flex-direction:column;gap:8px"></div></aside><section class="main" id="cmain"></section></div>`;
+    renderList(); renderAthCard();
+  } else if (k === 'plans'){
+    const rows = DATA.athletes.map(a => { const pw = weekSum(a, prev), c = compliance(a, prev), nx = planWeekInfo(a, next);
+      return `<tr><td><span class="who"><span class="ava ${a.real?'real':''}">${a.initials}</span>${esc(a.name)}</span></td>
+        <td class="num">${km1(pw.f)} км <span class="muted small">из ${planKm(pw)}</span></td>
+        <td class="num hide-s">${c==null?'-':`<span class="pct" style="color:var(--${c>=80?'ok':c>=50?'warn':'bad'})">${c}%</span>`}</td>
+        <td>${nx.n ? `<span class="flag ok">${nx.n} трен. · ${km1(nx.km)} км</span>` : '<span class="flag bad">нет плана</span>'}</td>
+        <td style="text-align:right"><button class="btn pri" data-paste="${a.id}">Вставить</button> <button class="btn hide-s" data-copy="${a.id}">Копия прошлой</button></td></tr>`; }).join('');
+    v.innerHTML = `<div class="vh"><h1>Планы</h1><p>неделя с ${fmtD(next)} · ставим в воскресенье</p><span class="spacer"></span><button class="btn pri" id="pgroup">Вставить неделю всей группе</button></div>
+      <div class="card"><div class="tblwrap"><table class="tbl"><thead><tr><th>Ученик</th><th>Прошлая неделя</th><th class="hide-s">Выполнение</th><th>План на ${fmtShort(next)}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="small muted" style="margin:10px 0 0">Рядом с каждым учеником объём и выполнение прошлой недели, чтобы не переключаться в аналитику.</p></div>`;
+    v.querySelectorAll('[data-paste]').forEach(b => b.onclick = () => openPaste(b.dataset.paste, next));
+    v.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => { const a = DATA.athletes.find(x=>x.id===b.dataset.copy); const undo = snapshotPlans([a.id]);
+      for (let i=0;i<7;i++){ const pl = a.plan[add(cur,i)]; delete a.plan[add(next,i)]; if (pl) a.plan[add(next,i)] = {type:pl.type,km:pl.km,text:pl.text}; }
+      renderCoach(); toast('Неделя '+a.short+' скопирована на '+fmtShort(next), undo); });
+    $('#pgroup').onclick = () => openPaste('*', next);
+  } else if (k === 'pay'){
+    const rows = DATA.athletes.map(a => { const ps = payState(a);
+      const act = ps.k==='claim' ? `<button class="btn pri" data-ok="${a.id}">Подтвердить</button>` : `<button class="btn" data-rem="${a.id}">Напомнить</button> <button class="btn hide-s" data-mark="${a.id}">Отметить оплату</button>`;
+      return `<tr><td><span class="who"><span class="ava ${a.real?'real':''}">${a.initials}</span>${esc(a.name)}</span></td><td class="num">${a.pay.sum.toLocaleString('ru-RU')} ₽</td><td class="num hide-s">${fmtShort(a.pay.next)}</td><td><span style="color:var(--${ps.c});font-weight:600">${esc(ps.t)}</span></td><td style="text-align:right">${act}</td></tr>`; }).join('');
+    const ok = DATA.athletes.filter(a => payState(a).k === 'ok');
+    v.innerHTML = `<div class="vh"><h1>Оплаты</h1><p>ученик платит тебе напрямую, сервис напоминает и отмечает</p></div>
+      <div class="kpis" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="kpi"><span class="k">В порядке</span><span class="v num">${ok.length} из ${DATA.athletes.length}</span></div><div class="kpi"><span class="k">Ждём</span><span class="v num">${(DATA.athletes.length-ok.length)} · ${DATA.athletes.filter(a=>payState(a).k!=='ok').reduce((s,a)=>s+a.pay.sum,0).toLocaleString('ru-RU')} ₽</span></div></div>
+      <div class="card"><div class="tblwrap"><table class="tbl"><thead><tr><th>Ученик</th><th>Сумма</th><th class="hide-s">Срок</th><th>Статус</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    const nextMonth = d => { const x = D(d); x.setUTCMonth(x.getUTCMonth()+1); return ISO(x); };
+    v.querySelectorAll('[data-rem]').forEach(b => b.onclick = () => { const a = DATA.athletes.find(x=>x.id===b.dataset.rem); toast('Бот напомнит '+a.short+': '+a.pay.sum.toLocaleString('ru-RU')+' ₽ до '+fmtShort(a.pay.next)); });
+    v.querySelectorAll('[data-mark]').forEach(b => b.onclick = () => { const a = DATA.athletes.find(x=>x.id===b.dataset.mark); a.pay.next = nextMonth(a.pay.next); renderCoach(); toast('Оплата '+a.short+' отмечена'); });
+    v.querySelectorAll('[data-ok]').forEach(b => b.onclick = () => { const a = DATA.athletes.find(x=>x.id===b.dataset.ok); a.pay.claimed = false; a.pay.next = nextMonth(a.pay.next); renderCoach(); toast('Оплата '+a.short+' подтверждена'); });
+  } else {
+    const weeks = [3,2,1].map(n => add(cur,-7*n)).concat([cur]);
+    const rows = DATA.athletes.map(a => { const ws = weeks.map(w => weekSum(a,w)); const mx = Math.max(10, ...ws.map(x=>Math.max(x.p,x.f)));
+      const bars = ws.map(x => `<i style="height:${Math.max(2,x.f/mx*34)}px" title="${km1(x.f)} км"></i>`).join('');
+      const cs = weeks.slice(0,3).map(w => compliance(a,w)).filter(x=>x!=null); const c = cs.length ? Math.round(cs.reduce((s,x)=>s+x,0)/cs.length) : null;
+      return `<tr><td><span class="who"><span class="ava ${a.real?'real':''}">${a.initials}</span>${esc(a.name)}</span></td><td><span class="mbar">${bars}</span></td><td class="num">${ws.slice(0,3).map(x=>Math.round(x.f)).join(' · ')}</td><td class="num">${c==null?'-':`<span class="pct" style="color:var(--${c>=80?'ok':c>=50?'warn':'bad'})">${c}%</span>`}</td></tr>`; }).join('');
+    v.innerHTML = `<div class="vh"><h1>Аналитика</h1><p>последние 3 недели и текущая</p></div>
+      <div class="card"><div class="tblwrap"><table class="tbl"><thead><tr><th>Ученик</th><th>Объём</th><th>км по неделям</th><th>Выполнение</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="small muted" style="margin:10px 0 0">Выполнение: доля плановых тренировок, которые ученик сделал полностью или с отклонением.</p></div>`;
+  }
+}
+/* ---------- coach (карточка ученика) ---------- */
 function renderList(){
-  renderClub();
   $('#cnt').textContent = DATA.athletes.length;
   $('#alist').innerHTML = DATA.athletes.map(a => {
     const mon = monday(TODAY), prev = add(mon,-7);
@@ -507,12 +635,11 @@ function renderList(){
       <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${fl || (a.real?'<span class="flag lime">Strava</span>':'')}</span>
     </button>`;
   }).join('');
-  document.querySelectorAll('.ath').forEach(b => b.onclick = () => { state.ath = b.dataset.a; state.sel = TODAY; renderCoach(); });
+  document.querySelectorAll('.ath').forEach(b => b.onclick = () => { state.ath = b.dataset.a; state.sel = TODAY; state.athOpen = true; renderCoach(); });
 }
 function dotColor(st){ return {done:'var(--ok)',dev:'var(--warn)',miss:'var(--bad)',noreport:'var(--muted)',moved:'var(--move)',extra:'color-mix(in srgb,var(--ok) 50%,var(--s3))',race:'var(--lime)'}[st] || 'var(--s3)'; }
 
-function renderCoach(){
-  renderList();
+function renderAthCard(){
   const a = DATA.athletes.find(x => x.id === state.ath);
   const pr = a.pr.map(p => `<div class="pr ${p.fresh?'new':''}"><span class="k">${p.dist}</span><span class="v num">${p.time}</span>${p.date?`<span class="${p.fresh?'nw':'k'}">${p.fresh?'новый · ':''}${fmtShort(p.date)}.${p.date.slice(2,4)}${p.where?' · '+esc(p.where):''}</span>`:''}</div>`).join('');
   const goals = a.goals.map(g => `<div class="goal"><span class="prio">${g.prio}</span><span><span class="t">${esc(g.title)}</span><span class="d" style="display:block">${g.date ? fmtD(g.date)+' '+g.date.slice(0,4) : (g.when||'без даты')} · ${g.dist} км</span></span><span class="tg num">${g.target}</span></div>`).join('');
@@ -520,6 +647,7 @@ function renderCoach(){
   $('#cmain').innerHTML = `
     <div class="head">
       <div>
+        <button class="btn back" id="backlist" style="margin-bottom:10px">‹ Все ученики</button>
         <h1>${esc(a.name)}</h1>
         <div class="meta"><span>Занимается с ${fmtD(a.since)} ${a.since.slice(0,4)}</span><span>·</span><span class="num">оплата ${a.pay.sum.toLocaleString('ru-RU')} ₽, ${a.pay.day}-го числа</span>${fl?'<span>·</span>'+fl:''}${a.real?'<span class="flag lime">настоящие данные</span>':'<span class="flag" style="background:var(--s3);color:var(--muted)">тестовый ученик</span>'}</div>
         ${(()=>{ const ps = payState(a); return `<div class="paybox"><span class="lbl" style="margin:0">Оплата</span><span class="num">${a.pay.sum.toLocaleString('ru-RU')} ₽ до ${fmtShort(a.pay.next)}</span><span class="ps" style="color:var(--${ps.c})">${ps.t}</span><span class="spacer"></span>${ps.k==='claim'?'<button class="btn pri" id="payok">Подтвердить</button>':'<button class="btn" id="payrem">Напомнить в боте</button><button class="btn" id="paymark">Отметить оплату</button>'}</div>`; })()}
@@ -574,6 +702,7 @@ function renderCoach(){
   const pm = $('#paymark'); if (pm) pm.onclick = () => { a.pay.next = nextMonth(a.pay.next); renderCoach(); toast('Оплата отмечена, следующая '+fmtShort(a.pay.next)); };
   const po = $('#payok'); if (po) po.onclick = () => { a.pay.claimed = false; a.pay.next = nextMonth(a.pay.next); renderCoach(); toast('Оплата подтверждена, следующая '+fmtShort(a.pay.next)); };
   $('#copyw').onclick = copyWeek;
+  const bl = $('#backlist'); if (bl) bl.onclick = () => { state.athOpen = false; renderCoach(); };
   renderCal(a); renderDetail(a); renderVol(a);
 }
 function shiftMonth(n){
@@ -758,18 +887,19 @@ function parseWeek(txt){
   }).filter(Boolean);
 }
 function nextWeekMon(){ return add(monday(TODAY),7); }
-function openPaste(){
-  const a = DATA.athletes.find(x=>x.id===state.ath);
-  const mon = nextWeekMon();
+function openPaste(athId, monArg){
+  if (typeof athId !== 'string') athId = state.ath;
+  const a = DATA.athletes.find(x=>x.id===(athId==='*'?state.ath:athId));
+  const mon = monArg || nextWeekMon();
   $('#modal').innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ph">
     <h2 id="ph">Вставить неделю текстом</h2>
-    <p class="muted" style="margin:0">Скопируй план из заметок как есть. Каждая строка начинается с дня недели. Километры, тип тренировки и описание разберутся сами. План ляжет ${esc(a.short)} на неделю с ${fmtD(mon)}.</p>
+    <p class="muted" style="margin:0">Скопируй план из заметок как есть. Каждая строка начинается с дня недели. Километры, тип тренировки и описание разберутся сами. План ляжет на неделю с ${fmtD(mon)}, кому именно, отметь ниже.</p>
     <div class="paste">
       <div class="field"><label for="ptxt">Текст из заметок</label><textarea id="ptxt">${SAMPLE}</textarea></div>
       <div><p class="lbl" style="margin-top:2px">Что получилось · <span id="ptot" class="num"></span></p><div class="parsed" id="pout"></div></div>
     </div>
     <p class="lbl" style="margin:14px 0 0">Кому поставить</p>
-    <div class="pto">${DATA.athletes.map(x=>`<label><input type="checkbox" value="${x.id}" ${x.id===a.id?'checked':''}> ${esc(x.short)}</label>`).join('')}<label><input type="checkbox" id="pall"> всей группе</label></div>
+    <div class="pto">${DATA.athletes.map(x=>`<label><input type="checkbox" value="${x.id}" ${athId==='*'||x.id===a.id?'checked':''}> ${esc(x.short)}</label>`).join('')}<label><input type="checkbox" id="pall" ${athId==='*'?'checked':''}> всей группе</label></div>
     <div class="actions"><button class="btn" id="pcancel">Отмена</button><button class="btn pri" id="papply">Поставить план</button></div>
   </div>`;
   $('#modal').hidden = false;
@@ -793,7 +923,7 @@ function openPaste(){
     ids.forEach(id => { const t = DATA.athletes.find(x=>x.id===id);
       for (let i=0;i<7;i++){ const d = add(mon,i); if (t.plan[d] && !t.plan[d].demo && t.plan[d].own) continue; delete t.plan[d]; }
       rows.forEach(r => { if (r.type!=='rest') t.plan[add(mon,r.wd)] = {type:r.type, km:r.km||0, text:r.text, group: ids.length>1}; }); });
-    closeModal(); state.month = mon.slice(0,7); state.sel = add(mon,1); renderCoach();
+    closeModal(); if (state.ctab==='athletes'){ state.month = mon.slice(0,7); state.sel = add(mon,1); } renderCoach();
     toast('План на неделю с '+fmtShort(mon)+' поставлен: '+(ids.length>1 ? ids.length+' ученикам' : DATA.athletes.find(x=>x.id===ids[0]).short), undo);
   };
   $('#ptxt').focus();
@@ -912,6 +1042,10 @@ function setMode(m){
   $('#cwrap').hidden = m!=='coach'; $('#athlete').hidden = m!=='ath'; $('#devseg').style.visibility = m==='coach' ? 'visible' : 'hidden';
   if (m==='coach') renderCoach(); else renderAthlete();
 }
+function getUI(){ try { return localStorage.getItem('dt-ui'); } catch(e){ return null; } }
+function applyUI(t){ document.documentElement.setAttribute('data-ui', t); $('#themebtn').textContent = t==='light' ? 'Тёмная тема' : 'Светлая тема'; try { localStorage.setItem('dt-ui', t); } catch(e){} }
+applyUI(getUI() || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+$('#themebtn').onclick = () => applyUI(document.documentElement.getAttribute('data-ui')==='light' ? 'dark' : 'light');
 $('#m-coach').onclick = () => setMode('coach');
 $('#m-ath').onclick = () => setMode('ath');
 function setDev(d){ $('#cwrap').classList.toggle('asphone', d==='phone'); $('#d-desk').setAttribute('aria-pressed', d!=='phone'); $('#d-phone').setAttribute('aria-pressed', d==='phone'); }
