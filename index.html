@@ -248,6 +248,32 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
 .note{font-size:12.5px;color:var(--muted)}
 
 
+/* клуб: внимание, групповые, оплата */
+.club{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.club h2{font-family:var(--f-display);text-transform:uppercase;font-size:13px;letter-spacing:.08em;color:var(--muted);margin:6px 0 0;font-weight:500}
+.att{display:flex;flex-direction:column;gap:6px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.att button{display:grid;grid-template-columns:8px 1fr;gap:9px;align-items:start;text-align:left;border:0;background:none;padding:4px 2px;border-radius:8px}
+.att button:hover{background:var(--s2)}
+.att i{width:8px;height:8px;border-radius:50%;margin-top:6px}
+.att b{font-weight:600;display:block;font-size:13px}
+.att span span{font-size:12px;color:var(--muted)}
+.grp{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.grp b{font-weight:600;font-size:13px}
+.grp .gw{font-size:12px;color:var(--muted)}
+.grp .gn{grid-row:1 / span 2;grid-column:2;font-family:var(--f-display);font-size:20px;text-align:right;line-height:1}
+.grp .gn small{display:block;font-family:var(--f-body);font-size:10.5px;color:var(--muted)}
+.paybox{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px;padding:10px 12px;border-radius:var(--r-s);background:var(--s2)}
+.paybox .ps{font-weight:600}
+.paybox .btn{padding:5px 11px;font-size:12px}
+.pausebar{background:color-mix(in srgb,var(--warn) 16%,var(--s2));border:1px solid color-mix(in srgb,var(--warn) 45%,var(--line));border-radius:var(--r-s);padding:9px 12px;font-size:13px;margin-top:12px}
+.ghost{width:100%;border:1px solid var(--line2);background:var(--s1);color:var(--text);font-weight:600;font-size:13px;padding:11px;border-radius:99px}
+.card2{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.card2 .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.card2 .btn{padding:6px 12px;font-size:12px}
+.toast .undo{margin-left:12px;border:0;background:var(--lime-ink);color:var(--lime);border-radius:99px;padding:3px 10px;font-weight:700;font-size:12px}
+.pto{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pto label{display:inline-flex;gap:6px;align-items:center;background:var(--s2);border:1px solid var(--line2);border-radius:99px;padding:5px 11px;font-size:13px;cursor:pointer}
+.day .pz,.wcol .pz{font-size:10.5px;font-weight:600;color:var(--warn)}
 /* виды календаря */
 .vseg{display:flex;background:var(--s2);border:1px solid var(--line);border-radius:99px;padding:3px}
 .vseg button{border:0;background:none;padding:5px 12px;border-radius:99px;color:var(--muted);font-weight:600;font-size:13px}
@@ -287,9 +313,11 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
 .dev{display:flex}
 @container cw (max-width:1180px){ .two{grid-template-columns:1fr} .detail{position:static} }
 @container cw (max-width:920px){
-  .coach{grid-template-columns:1fr}
-  .side{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}
-  .side h2{display:none}
+  .coach{grid-template-columns:minmax(0,1fr)}
+  .side{min-width:0}
+  .side{position:static}
+  #alist{flex-direction:row!important;overflow-x:auto;padding-bottom:4px}
+  .side>h2{display:none}
   .ath{min-width:230px}
   .head{grid-template-columns:1fr}
 }
@@ -345,8 +373,9 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
 
 <div id="cwrap" class="cwrap"><div id="coach" class="coach">
   <aside class="side" aria-label="Ученики">
+    <div class="club" id="club"></div>
     <h2>Ученики · <span id="cnt"></span></h2>
-    <div id="alist" style="display:contents"></div>
+    <div id="alist" style="display:flex;flex-direction:column;gap:8px"></div>
   </aside>
   <section class="main" id="cmain"></section>
 </div></div>
@@ -417,19 +446,55 @@ function weekSum(a, mon){
 }
 const planKm = ws => (ws.unk ? 'от ' : '') + km1(ws.p);
 const NOTE = (a,d) => (a.notes && a.notes[d]) || {};
+// оплата ученика тренеру: срок, статус, «я оплатил», подтверждение
+DATA.athletes.forEach(a => { a.pay = a.pay || {}; if (!a.pay.next) a.pay.next = a.pay.paid_until || '2026-11-01'; });
+DATA.groups = DATA.groups || [
+  {id:'csp', title:'ЦСП, стадион', when:'ср 19:00', date:'2026-10-14', going:['aigul','timur']},
+  {id:'dh', title:'Дай Хард, длинный', when:'вс 9:00', date:'2026-10-18', going:['aigul']},
+];
+const PAUSE_RE = /бол|травм|заболе|ноет|температ|простыл/i;
+function payState(a){
+  const days = Math.round((D(a.pay.next)-D(TODAY))/864e5);
+  if (a.pay.claimed) return {k:'claim', t:'ученик отметил оплату, подтверди', c:'warn', days};
+  if (days < 0) return {k:'late', t:'оплата просрочена на '+(-days)+' дн.', c:'bad', days};
+  if (days <= 3) return {k:'soon', t:'оплата '+fmtShort(a.pay.next), c:'warn', days};
+  return {k:'ok', t:'следующая '+fmtShort(a.pay.next), c:'ok', days};
+}
+function attention(a){
+  const out = [];
+  if (a.pause) out.push(['warn', 'на паузе: '+a.pause]);
+  if (status(a, add(TODAY,-1)) === 'noreport') out.push(['bad','нет отчёта за вчера']);
+  let miss = 0; for (let i=1;i<=7;i++) if (status(a, add(TODAY,-i)) === 'miss') miss++;
+  if (miss >= 2) out.push(['bad', miss+' пропуска за неделю']);
+  for (let i=0;i<=3;i++){ const d = add(TODAY,-i), n = NOTE(a,d), f = a.fact[d];
+    if ((n.comment && PAUSE_RE.test(n.comment)) || (f && f.feel && f.feel <= 2)){ out.push(['warn', 'жалоба '+fmtShort(d)+(n.comment?': «'+n.comment.slice(0,48)+(n.comment.length>48?'…':'')+'»':'')]); break; } }
+  const ps = payState(a); if (ps.k !== 'ok') out.push([ps.c, ps.t]);
+  return out;
+}
+let undoFn = null;
+function snapshotPlans(ids){ const snap = ids.map(id => { const a = DATA.athletes.find(x=>x.id===id); return [a, JSON.parse(JSON.stringify(a.plan))]; }); return () => snap.forEach(([a, pl]) => a.plan = pl); }
+function renderClub(){
+  const items = DATA.athletes.map(a => { const l = attention(a); return l.length ? {a, c: l.some(x=>x[0]==='bad') ? 'bad' : 'warn', t: l.map(x=>x[1]).join(' · ')} : null; }).filter(Boolean);
+  const g = DATA.groups.map(x => `<div class="grp"><b>${esc(x.title)}</b><span class="gw">${x.when} · ближайшая ${fmtShort(x.date)}</span><span class="gn num">${x.going.length}<small>идут</small></span></div>`).join('');
+  $('#club').innerHTML = `<h2>Кому написать сегодня · ${items.length}</h2>
+    <div class="att">${items.length ? items.map(x => `<button data-a="${x.a.id}"><i style="background:var(--${x.c})"></i><span><b>${esc(x.a.name)}</b><span>${esc(x.t)}</span></span></button>`).join('') : '<span class="muted small">Все отчитались, вопросов нет</span>'}</div>
+    <h2>Групповые тренировки</h2>${g}`;
+  document.querySelectorAll('.att button').forEach(b => b.onclick = () => { state.ath = b.dataset.a; state.sel = TODAY; renderCoach(); });
+}
 function athFlags(a){
   const out = [];
-  const pd = a.pay.paid_until;
-  if (pd){ const days = (D(pd)-D(TODAY))/864e5;
-  if (days < 0) out.push(['bad','оплата просрочена']);
-  else if (days <= 3) out.push(['warn','оплата '+fmtShort(pd)]); }
-  const y = add(TODAY,-1);
-  if (status(a,y)==='noreport') out.push(['bad','нет отчёта']);
+  const ps = payState(a);
+  if (ps.k === 'late') out.push(['bad','оплата просрочена']);
+  else if (ps.k === 'soon') out.push(['warn','оплата '+fmtShort(a.pay.next)]);
+  else if (ps.k === 'claim') out.push(['warn','проверь оплату']);
+  if (a.pause) out.push(['warn','пауза']);
+  if (status(a, add(TODAY,-1))==='noreport') out.push(['bad','нет отчёта']);
   return out;
 }
 
 /* ---------- coach ---------- */
 function renderList(){
+  renderClub();
   $('#cnt').textContent = DATA.athletes.length;
   $('#alist').innerHTML = DATA.athletes.map(a => {
     const mon = monday(TODAY), prev = add(mon,-7);
@@ -457,6 +522,8 @@ function renderCoach(){
       <div>
         <h1>${esc(a.name)}</h1>
         <div class="meta"><span>Занимается с ${fmtD(a.since)} ${a.since.slice(0,4)}</span><span>·</span><span class="num">оплата ${a.pay.sum.toLocaleString('ru-RU')} ₽, ${a.pay.day}-го числа</span>${fl?'<span>·</span>'+fl:''}${a.real?'<span class="flag lime">настоящие данные</span>':'<span class="flag" style="background:var(--s3);color:var(--muted)">тестовый ученик</span>'}</div>
+        ${(()=>{ const ps = payState(a); return `<div class="paybox"><span class="lbl" style="margin:0">Оплата</span><span class="num">${a.pay.sum.toLocaleString('ru-RU')} ₽ до ${fmtShort(a.pay.next)}</span><span class="ps" style="color:var(--${ps.c})">${ps.t}</span><span class="spacer"></span>${ps.k==='claim'?'<button class="btn pri" id="payok">Подтвердить</button>':'<button class="btn" id="payrem">Напомнить в боте</button><button class="btn" id="paymark">Отметить оплату</button>'}</div>`; })()}
+        ${a.pause?`<div class="pausebar"><b>На паузе:</b> ${esc(a.pause)}. План после выздоровления продолжится с того же места.</div>`:''}
         <div class="goals"><p class="lbl">Цели · видит тренер и сам ученик</p>${goals}</div>
       </div>
       <div>
@@ -502,6 +569,10 @@ function renderCoach(){
   cal.addEventListener('pointerdown', e => { sx = e.clientX; });
   cal.addEventListener('pointerup', e => { if (sx !== null && Math.abs(e.clientX - sx) > 60) nav(e.clientX < sx ? 1 : -1); sx = null; });
   $('#pastew').onclick = openPaste;
+  const nextMonth = d => { const x = D(d); x.setUTCMonth(x.getUTCMonth()+1); return ISO(x); };
+  const prm = $('#payrem'); if (prm) prm.onclick = () => toast('Бот напомнит '+a.short+': оплата '+a.pay.sum.toLocaleString('ru-RU')+' ₽ до '+fmtShort(a.pay.next));
+  const pm = $('#paymark'); if (pm) pm.onclick = () => { a.pay.next = nextMonth(a.pay.next); renderCoach(); toast('Оплата отмечена, следующая '+fmtShort(a.pay.next)); };
+  const po = $('#payok'); if (po) po.onclick = () => { a.pay.claimed = false; a.pay.next = nextMonth(a.pay.next); renderCoach(); toast('Оплата подтверждена, следующая '+fmtShort(a.pay.next)); };
   $('#copyw').onclick = copyWeek;
   renderCal(a); renderDetail(a); renderVol(a);
 }
@@ -588,6 +659,7 @@ function renderMonth(a){
       const fk = f ? `<span class="fk num">${km1(f.km)}<small>км</small></span>` : '';
       const nt = NOTE(a,d);
       const cm = (nt.comment||nt.coach) ? '<i class="cm" aria-label="есть комментарий"></i>' : '';
+      if (a.pause && d >= TODAY && p) tag = 'пауза';
       html += `<button class="day st-${st} ${out?'out':''} ${d===TODAY?'today':''}" data-d="${d}" aria-pressed="${d===state.sel}">
         <span class="dn"><b class="num">${D(d).getUTCDate()}</b><span class="wd">${WD[i]}</span></span>
         <span class="ty">${ty}</span>${pk?`<span class="pk num">${pk}</span>`:''}${tag?`<span class="tag">${tag}</span>`:''}${cm}${fk}
@@ -696,6 +768,8 @@ function openPaste(){
       <div class="field"><label for="ptxt">Текст из заметок</label><textarea id="ptxt">${SAMPLE}</textarea></div>
       <div><p class="lbl" style="margin-top:2px">Что получилось · <span id="ptot" class="num"></span></p><div class="parsed" id="pout"></div></div>
     </div>
+    <p class="lbl" style="margin:14px 0 0">Кому поставить</p>
+    <div class="pto">${DATA.athletes.map(x=>`<label><input type="checkbox" value="${x.id}" ${x.id===a.id?'checked':''}> ${esc(x.short)}</label>`).join('')}<label><input type="checkbox" id="pall"> всей группе</label></div>
     <div class="actions"><button class="btn" id="pcancel">Отмена</button><button class="btn pri" id="papply">Поставить план</button></div>
   </div>`;
   $('#modal').hidden = false;
@@ -708,14 +782,19 @@ function openPaste(){
   };
   upd();
   $('#ptxt').oninput = upd;
+  $('#pall').onchange = e => document.querySelectorAll('.pto input[value]').forEach(x => x.checked = e.target.checked);
   $('#pcancel').onclick = closeModal;
   $('#modal').onclick = e => { if (e.target.id==='modal') closeModal(); };
   $('#papply').onclick = () => {
     const rows = upd();
-    for (let i=0;i<7;i++) delete a.plan[add(mon,i)];
-    rows.forEach(r => { if (r.type!=='rest') a.plan[add(mon,r.wd)] = {type:r.type, km:r.km||0, text:r.text}; });
+    const ids = [...document.querySelectorAll('.pto input[value]:checked')].map(x=>x.value);
+    if (!ids.length) return toast('Отметь, кому ставить план');
+    const undo = snapshotPlans(ids);
+    ids.forEach(id => { const t = DATA.athletes.find(x=>x.id===id);
+      for (let i=0;i<7;i++){ const d = add(mon,i); if (t.plan[d] && !t.plan[d].demo && t.plan[d].own) continue; delete t.plan[d]; }
+      rows.forEach(r => { if (r.type!=='rest') t.plan[add(mon,r.wd)] = {type:r.type, km:r.km||0, text:r.text, group: ids.length>1}; }); });
     closeModal(); state.month = mon.slice(0,7); state.sel = add(mon,1); renderCoach();
-    toast('План на неделю с '+fmtShort(mon)+' поставлен');
+    toast('План на неделю с '+fmtShort(mon)+' поставлен: '+(ids.length>1 ? ids.length+' ученикам' : DATA.athletes.find(x=>x.id===ids[0]).short), undo);
   };
   $('#ptxt').focus();
 }
@@ -723,11 +802,14 @@ function closeModal(){ $('#modal').hidden = true; $('#modal').innerHTML=''; }
 function copyWeek(){
   const a = DATA.athletes.find(x=>x.id===state.ath);
   const src = monday(TODAY), dst = add(src,7);
+  const undo = snapshotPlans([a.id]);
   for (let i=0;i<7;i++){ const p = a.plan[add(src,i)]; delete a.plan[add(dst,i)]; if (p) a.plan[add(dst,i)] = {type:p.type,km:p.km,text:p.text}; }
   state.month = dst.slice(0,7); renderCoach();
-  toast('Неделя с '+fmtShort(src)+' скопирована на '+fmtShort(dst));
+  toast('Неделя с '+fmtShort(src)+' скопирована на '+fmtShort(dst), undo);
 }
-let tt; function toast(t){ const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(tt); tt = setTimeout(()=>el.hidden=true, 2600); }
+let tt; function toast(t, undo){ const el = $('#toast'); el.textContent = t; undoFn = undo || null;
+  if (undo){ const b = document.createElement('button'); b.className = 'undo'; b.textContent = 'Отменить'; b.onclick = () => { undoFn && undoFn(); undoFn = null; el.hidden = true; renderCoach(); }; el.appendChild(b); }
+  el.hidden = false; clearTimeout(tt); tt = setTimeout(()=>{ el.hidden=true; undoFn=null; }, undo ? 6000 : 2600); }
 
 /* ---------- athlete ---------- */
 const ME = () => DATA.athletes.find(x=>x.id==='denis');
@@ -749,6 +831,8 @@ function renderAthlete(){
         <p>${p ? esc(p.text) : 'Сегодня без бега. Можно растяжку.'}</p>
         ${p ? (f ? `<button class="cta done" id="rep">Отчёт отправлен · ${km1(f.km)} км</button>` : `<button class="cta" id="rep">Отчитаться о тренировке</button>`) : ''}
       </div>
+      ${a.pause ? `<div class="pausebar"><b>Пауза:</b> ${esc(a.pause)}. ${esc(DATA.coach)} в курсе. <button class="btn" id="unpause" style="margin-left:6px">Я снова в строю</button></div>` : `<button class="ghost" id="pausebtn">Не на 100%: болею или травма</button>`}
+      ${(()=>{ const g = DATA.groups.find(x=>x.id==='dh'); const go = g.going.includes(a.id); return `<div class="card2"><div class="row"><span><span class="lbl" style="margin:0">Групповая</span><br><b>${esc(g.title)}</b><br><span class="muted small">${g.when} · ${fmtShort(g.date)} · идут ${g.going.length}</span></span><button class="btn ${go?'':'pri'}" id="gogrp">${go?'Иду ✓':'Иду'}</button></div></div>`; })()}
       <div class="mini"><div><div class="k">эта неделя</div><div class="v num">${km1(ws.f)}</div><div class="k">план ${planKm(ws)}</div></div><div><div class="k">прошлая</div><div class="v num">${km1(prevW.f)}</div><div class="k">план ${planKm(prevW)}</div></div><div><div class="k">личник 21,1</div><div class="v num">1:27:53</div><div class="k">новый, 11.10</div></div></div>`;
   } else if (state.tab === 'week'){
     const rows = Array.from({length:7},(_,i)=>{ const d = add(mon,i), p = a.plan[d], f = a.fact[d], st = status(a,d);
@@ -759,11 +843,22 @@ function renderAthlete(){
   } else {
     body = `<div class="hello"><div><p>профиль</p><h2>${esc(a.name)}</h2></div><span class="ava real">${a.initials}</span></div>
       <p class="lbl">Цели</p>${a.goals.map(g=>`<div class="goal"><span class="prio">${g.prio}</span><span><span class="t">${esc(g.title)}</span><span class="d" style="display:block">${g.date ? fmtD(g.date) : (g.when||'без даты')} · ${g.dist} км</span></span><span class="tg num">${g.target}</span></div>`).join('')}
-      <p class="lbl" style="margin-top:6px">Личники</p><div class="prs" style="grid-template-columns:1fr 1fr">${a.pr.map(p=>`<div class="pr"><span class="k">${p.dist}</span><span class="v num">${p.time}</span></div>`).join('')}</div>`;
+      <p class="lbl" style="margin-top:6px">Личники</p><div class="prs" style="grid-template-columns:1fr 1fr">${a.pr.map(p=>`<div class="pr"><span class="k">${p.dist}</span><span class="v num">${p.time}</span></div>`).join('')}</div>
+      <p class="lbl" style="margin-top:6px">Оплата тренеру</p>
+      <div class="card2"><div class="row"><span><b class="num">${a.pay.sum.toLocaleString('ru-RU')} ₽</b> <span class="muted">до ${fmtD(a.pay.next)}</span><br><span class="muted small">Перевод по номеру телефона, Т-Банк, получатель ${esc(DATA.coach)} М.</span></span></div>
+        ${a.pay.claimed ? '<span class="small" style="color:var(--warn)">Отметил оплату, ждём подтверждения тренера</span>' : '<button class="btn pri" id="paid">Я оплатил</button>'}</div>
+      <p class="lbl" style="margin-top:6px">Часы и приложения</p>
+      <div class="card2"><div class="row"><span><b>Garmin Connect</b><br><span class="muted small">Добавь в друзья аккаунт клуба и открой ему просмотр активностей</span></span><span class="flag ok">подключено</span></div>
+        <div class="row"><span><b>Strava</b><br><span class="muted small">Подпишись на аккаунт клуба, он увидит тренировки</span></span><span class="flag ok">подключено</span></div>
+        <div class="row"><span><b>Без часов</b><br><span class="muted small">Отчёт кнопками, скрин или голосовое в бота</span></span><span class="flag" style="background:var(--s3);color:var(--muted)">всегда</span></div></div>`;
   }
   s.innerHTML = bar + `<div class="scr">${body}</div>` + tabs + (state.report ? reportSheet(a) : '');
   s.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { state.tab = b.dataset.t; state.report=false; renderAthlete(); });
   const rep = $('#rep'); if (rep) rep.onclick = () => { state.report = true; renderAthlete(); };
+  const pb = $('#pausebtn'); if (pb) pb.onclick = () => { a.pause = 'болею, '+fmtShort(TODAY); a.notes = a.notes||{}; a.notes[TODAY] = Object.assign({}, a.notes[TODAY], {comment:'Заболел, беру паузу'}); renderAthlete(); toast(DATA.coach+' получил сигнал: ты на паузе'); };
+  const up = $('#unpause'); if (up) up.onclick = () => { a.pause = null; renderAthlete(); toast('Пауза снята, план продолжается'); };
+  const gg = $('#gogrp'); if (gg) gg.onclick = () => { const g = DATA.groups.find(x=>x.id==='dh'); g.going = g.going.includes(a.id) ? g.going.filter(x=>x!==a.id) : [...g.going, a.id]; renderAthlete(); };
+  const pd = $('#paid'); if (pd) pd.onclick = () => { a.pay.claimed = true; renderAthlete(); toast(DATA.coach+' получил отметку об оплате'); };
   if (state.report) bindReport(a);
   renderBot(a);
 }
@@ -804,6 +899,9 @@ function renderBot(a){
     <div class="msg">Как прошла тренировка?<span class="tm">22:00</span></div>
     <div class="kb"><span>Как в плане</span><span>Частично</span><span>Не сделал</span></div>`;
   if (f) h += `<div class="msg me">${f.status==='miss'?'Не сделал':(f.status==='dev'?'Частично':'Как в плане')}, ${km1(f.km)} км${NOTE(a,TODAY).comment?'. '+esc(NOTE(a,TODAY).comment):''}<span class="tm">сейчас</span></div><div class="msg">Записал. ${esc(DATA.coach)} увидит в календаре.<span class="tm">сейчас</span></div>`;
+  const ps = payState(a);
+  h += `<div class="msg">Напоминание: ${fmtD(a.pay.next)} оплата ${esc(DATA.coach)}у ${a.pay.sum.toLocaleString('ru-RU')} ₽. Перевод по номеру, Т-Банк.<span class="tm">за 3 дня до срока</span></div><div class="kb one"><span>${a.pay.claimed?'Отмечено, ждём тренера':'Я оплатил'}</span></div>`;
+  if (a.pause) h += `<div class="msg me">Заболел, беру паузу<span class="tm">сейчас</span></div><div class="msg">Выздоравливай. ${esc(DATA.coach)} в курсе, план подождёт.<span class="tm">сейчас</span></div>`;
   $('#tg').innerHTML = h;
 }
 
