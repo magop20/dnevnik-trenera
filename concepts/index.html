@@ -140,6 +140,7 @@ button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px soli
 .day .dn{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
 .day .dn b{font-weight:600;color:var(--text);font-size:13px}
 .day .dn .wd{display:none}
+.day .pk2{display:none}
 .day .ty{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .day .pk{font-size:12px;color:var(--muted)}
 .day .fk{font-family:var(--f-display);font-size:22px;font-weight:600;line-height:1;margin-top:auto}
@@ -394,19 +395,23 @@ textarea{width:100%;min-height:250px;background:var(--bg);color:var(--text);bord
   .wkv{grid-template-columns:1fr}
   .wcol{min-height:0}
   .wcol .ptx{-webkit-line-clamp:3}
-  .cal{grid-template-columns:1fr;gap:6px}
-  .dow{display:none}
-  .wk{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-  .wk .wsum{order:-1;flex-direction:row;align-items:baseline;gap:10px;flex-wrap:wrap}
-  .day{min-height:0;display:grid;grid-template-columns:52px 1fr auto;grid-template-rows:auto auto;column-gap:10px;row-gap:0;align-items:center;padding:9px 12px}
-  .day.out{display:none}
-  .day .dn{grid-row:1 / span 2;flex-direction:column;align-items:flex-start}
-  .day .dn .wd{display:block;font-size:11px;text-transform:uppercase}
-  .day .ty{grid-column:2}
-  .day .pk{grid-column:2;grid-row:2}
-  .day .fk{grid-column:3;grid-row:1 / span 2;margin:0}
-  .day .tag{grid-column:2}
-  .day .cm{top:10px;right:10px}
+  .cal{grid-template-columns:repeat(7,minmax(0,1fr)) 42px;gap:3px}
+  .dow{font-size:10px;padding:0 0 2px;text-align:center;letter-spacing:.02em}
+  .day{min-height:54px;padding:4px 3px;border-radius:8px;gap:1px;align-items:stretch}
+  .day .dn{justify-content:center}
+  .day .dn b{font-size:12px}
+  .day .ty,.day .pk,.day .tag{display:none}
+  .day .pk2{display:block;text-align:center;font-size:11px;color:var(--muted);margin-top:auto}
+  .day .fk{font-size:15px;text-align:center;margin-top:auto}
+  .day .fk small{display:none}
+  .day .cm{top:4px;right:4px;width:6px;height:6px;border-radius:50%}
+  .day.st-moved .dn b{color:var(--move)}
+  .wsum{padding:4px 2px;border-radius:8px;align-items:center}
+  .wsum .wl,.wsum .wp,.wsum .bar{display:none}
+  .wsum .wf{font-size:14px}
+  .wsum .wf small{display:none}
+  .blk{font-size:10px;padding-top:4px}
+  .legend{gap:4px 10px;font-size:11px}
   .prs{grid-template-columns:repeat(2,minmax(0,1fr))}
   .head{padding:16px}
   .head h1{font-size:30px}
@@ -806,7 +811,7 @@ function renderMonth(a){
       if (a.pause && d >= TODAY && p) tag = 'пауза';
       html += `<button class="day st-${st} ${out?'out':''} ${d===TODAY?'today':''}" data-d="${d}" aria-pressed="${d===state.sel}">
         <span class="dn"><b class="num">${D(d).getUTCDate()}</b><span class="wd">${WD[i]}</span></span>
-        <span class="ty">${ty}</span>${pk?`<span class="pk num">${pk}</span>`:''}${tag?`<span class="tag">${tag}</span>`:''}${cm}${fk}
+        <span class="ty">${ty}</span>${pk?`<span class="pk num">${pk}</span>`:''}${p&&!f?`<span class="pk2 num">${p.km?km1(p.km):(TYPE[p.type]||'').slice(0,3)}</span>`:''}${tag?`<span class="tag">${tag}</span>`:''}${cm}${fk}
       </button>`;
     }
     const ws = weekSum(a, mon);
