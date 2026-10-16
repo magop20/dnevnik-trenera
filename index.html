@@ -1100,8 +1100,8 @@ function setMode(m){
   if (m==='coach') renderCoach(); else renderAthlete();
 }
 function getUI(){ try { return localStorage.getItem('dt-ui'); } catch(e){ return null; } }
-function applyUI(t){ document.documentElement.setAttribute('data-ui', t); $('#themebtn').textContent = t==='light' ? 'Тёмная тема' : 'Светлая тема'; try { localStorage.setItem('dt-ui', t); } catch(e){} }
-applyUI(getUI() || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+function applyUI(t, save=true){ document.documentElement.setAttribute('data-ui', t); $('#themebtn').textContent = t==='light' ? 'Тёмная тема' : 'Светлая тема'; if (save) try { localStorage.setItem('dt-ui', t); } catch(e){} }
+applyUI(getUI() || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'), false);
 $('#themebtn').onclick = () => applyUI(document.documentElement.getAttribute('data-ui')==='light' ? 'dark' : 'light');
 $('#m-coach').onclick = () => setMode('coach');
 $('#m-ath').onclick = () => setMode('ath');
