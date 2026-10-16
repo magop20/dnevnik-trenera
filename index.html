@@ -1405,6 +1405,53 @@ window.renderAthlete = function(){
 .mv button{border:1px solid var(--line2);background:var(--s2);border-radius:8px;padding:4px 8px;font-size:11.5px;font-weight:600}
 </style>
 <script>
+/* ---------- ученик: свой календарь день / неделя / месяц / год ---------- */
+const _athWeek = window.renderAthlete, _detail = window.renderDetail;
+window.renderDetail = function(a){
+  _detail(a);
+  const c = $('#cmt'); if (state.mode !== 'ath' || !c) return;
+  c.textContent = 'Написать ' + DATA.coach + 'у'; c.onclick = () => toast('Сообщение уйдёт ' + DATA.coach + 'у в бота');
+};
+window.renderAthlete = function(){
+  const want = state.tab === 'cal' && !state.report;
+  if (want) state.tab = 'me';
+  _athWeek();
+  if (want) state.tab = 'cal';
+  const s = $('#screen'), tabs = s.querySelector('nav.tabs'); if (!tabs) return;
+  tabs.style.gridTemplateColumns = 'repeat(4,1fr)';
+  const b = document.createElement('button'); b.dataset.t = 'cal'; b.textContent = 'Календарь';
+  tabs.insertBefore(b, tabs.children[2]);
+  tabs.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', want ? x === b : x.getAttribute('aria-pressed') === 'true'));
+  b.onclick = () => { state.tab = 'cal'; state.report = false; window.renderAthlete(); };
+  if (!want) return;
+  const a = ME(), body = s.querySelector('.scr');
+  const cm = $('#cmain'); if (cm) cm.innerHTML = '';
+  state.ath = a.id;
+  body.innerHTML = `<div class="hello"><div><p>план и факт</p><h2>Мой календарь</h2></div></div>
+    <div class="scal">
+      <div class="vseg" role="group" aria-label="Вид календаря"><button data-v="day">День</button><button data-v="week">Неделя</button><button data-v="month">Месяц</button><button data-v="year">Год</button></div>
+      <div class="mnav"><button class="btn icon" id="mprev" aria-label="Назад">‹</button><span class="cur" id="mcur"></span><button class="btn icon" id="mnext" aria-label="Вперёд">›</button><button class="btn" id="mtoday">Сегодня</button></div>
+      <div class="cal" id="cal"></div>
+      <div class="card detail" id="detail"></div>
+    </div>`;
+  $('#mprev').onclick = () => nav(-1);
+  $('#mnext').onclick = () => nav(1);
+  $('#mtoday').onclick = () => { state.sel = TODAY; state.month = TODAY.slice(0,7); renderCal(a); window.renderDetail(a); };
+  body.querySelectorAll('.vseg button').forEach(x => x.onclick = () => { state.view = x.dataset.v; state.month = state.sel.slice(0,7); renderCal(a); window.renderDetail(a); });
+  let sx = null; const cal = $('#cal');
+  cal.addEventListener('pointerdown', e => { sx = e.clientX; });
+  cal.addEventListener('pointerup', e => { if (sx !== null && Math.abs(e.clientX - sx) > 60) nav(e.clientX < sx ? 1 : -1); sx = null; });
+  renderCal(a); window.renderDetail(a);
+};
+</script>
+<style>
+.scal{container:cw/inline-size;display:flex;flex-direction:column;gap:10px}
+.scal .vseg{align-self:stretch;display:grid;grid-template-columns:repeat(4,1fr)}
+.scal .mnav{display:flex;align-items:center;gap:6px}
+.scal .mnav .cur{flex:1;text-align:center;font-weight:700}
+.scal .detail{margin-top:4px}
+</style>
+<script>
 if (!getUI()) applyUI('light');
 state.ctab = 'inbox';
 setMode(state.mode);
